@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>three.js webgl - equirectangular panorama</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+
+<body>
+    <div id="container"></div>
+    <script src='./TweenMax.min.js'></script>
+    <script src="./three.min.js"></script>
+    <script src="./OrbitControls.js"></script>
+    <script type="module">
+        var camera, scene, renderer, controls;
+        init();
+        initControls()
+        animate();
+
+        function initCamera() {
+            camera = new THREE.PerspectiveCamera(
+                140,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                20000
+            );
+            camera.position.set(2000, 7000, 0);
+            setTimeout(() => {
+                TweenMax.to(camera.position, 4, {
+                    x: 0, y: 0, z: 400, ease: 'Circ.easeOut',
+                    onUpdate() {
+                        if (camera.fov > 90) {
+                            camera.fov -= 0.1
+                        }
+                        camera.updateProjectionMatrix();
+                    }
+                })
+            }, 2000)
+        }
+        function initControls() {
+            controls = new THREE.OrbitControls(
+                camera,
+                document.getElementById('container')
+            );
+            controls.enableZoom = true;
+            controls.enablePan = true;
+            controls.rotateSpeed = -0.1;
+            controls.panSpeed = 20;
+            controls.enableDamping = true;
+        };
+        function init() {
+            var container, mesh;
+            container = document.getElementById('container');
+            scene = new THREE.Scene();
+            initPlanet()
+            initCamera()
+            renderer = new THREE.WebGLRenderer();
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+        }
+        function initPlanet() {
+            let geometry = new THREE.SphereBufferGeometry(7000, 60, 60);
+            geometry.scale(1, 1, -1);
+            let texture = new THREE.TextureLoader().load('textures/1.jpg');
+            let material = new THREE.MeshBasicMaterial({ map: texture });
+            let mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(2000, 0, 0)
+            mesh.rotateY(90)
+            scene.add(mesh);
+        }
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        function animate() {
+            controls.update();
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+<style>
+    * {
+        overflow: hidden;
+    }
+</style>
+
+</html>
